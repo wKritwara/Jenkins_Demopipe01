@@ -14,7 +14,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/wKritwara/Jenkins_Demopipe01.git'
             }
         }
-        stages {
         stage('Setup venv') {
             steps {
                 sh '''
@@ -25,6 +24,7 @@ pipeline {
                 '''
             }
         }
+        
         stage('Run Tests & Coverage') {
             steps {
                 sh 'pytest --cov=app tests/'
