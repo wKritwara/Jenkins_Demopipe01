@@ -14,11 +14,15 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/wKritwara/Jenkins_Demopipe01.git'
             }
         }
-        stage('Install Dependencies') {
+        stages {
+        stage('Setup venv') {
             steps {
-                sh 'pip install --upgrade pip'
-                sh 'pip install -r requirements.txt'
-                sh 'pip install sonar-scanner coverage'
+                sh '''
+                python3 -m venv venv
+                source venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                '''
             }
         }
         stage('Run Tests & Coverage') {
