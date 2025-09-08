@@ -1,42 +1,14 @@
 pipeline {
     agent any
     
-    environment {
-        DOCKER_IMAGE = 'hello-world'
-    }
-    
     stages {
-        stage('Checkout') {
-            steps {
-                // Checkout the code from your repository
-                checkout scm
-            }
-        }
-        
-        stage('Build Docker Image') {
+        stage('Hello') {
             steps {
                 script {
-                    // Build Docker image (replace with your Dockerfile if needed)
-                    docker.build("my-hello-world-image")
+                    // Running a simple Docker container with a Hello World message
+                    sh 'docker run --rm hello-world'
                 }
             }
-        }
-
-        stage('Run Docker Image') {
-            steps {
-                script {
-                    // Run the Docker container
-                    docker.image('my-hello-world-image').inside {
-                        sh 'echo "Hello from inside the Docker container!"'
-                    }
-                }
-            }
-        }
-    }
-    post {
-        always {
-            // Clean up any resources
-            cleanWs()
         }
     }
 }
