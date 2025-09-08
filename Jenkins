@@ -1,12 +1,13 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.11'  // Docker image
-            args '-v /var/run/docker.sock:/var/run/docker.sock'  // optional if Docker CLI is needed
+            image 'python:3.11'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
     environment {
-        SONARQUBE = credentials('sonarqube-token')  // store your SonarQube token in Jenkins
+        SONARQUBE_TOKEN = credentials('sonarqube-token') // Jenkins credential
+        SONARQUBE_SERVER = 'Sonarqube'                  // Name configured in Jenkins SonarQube plugin
     }
     stages {
         stage('Checkout') {
@@ -14,42 +15,39 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/wKritwara/Jenkins_Demopipe01.git'
             }
         }
-        
-        stage('Setup venv') {
+
+        stage('Setup Virtual Environment') {
             steps {
-                script {
-                    sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    pip install pysonar   # Install pysonar here
-                    '''
-                }
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                pip install pytest pytest-cov
+                '''
             }
         }
-        
+
         stage('Run Tests & Coverage') {
             steps {
-                script {
-                    sh '''
-                    . venv/bin/activate
-                    venv/bin/pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=xml
-                    '''
-                }
+                sh '''
+                . venv/bin/activate
+                pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=xml
+                '''
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                script {
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
                     sh '''
                     . venv/bin/activate
-                    pysonar \
-                      --sonar-host-url=http://172.17.0.3:9000 \
-                      --sonar-token=${SONARQUBE} \
-                      --sonar-project-key=demoapi \
-                      --sources .
+                    sonar-scanner \
+                      -Dsonar.projectKey=demoapi \
+                      -Dsonar.sources=. \
+                      -Dsonar.python.coverage.reportPaths=coverage.xml \
+                      -Dsonar.host.url=$SONAR_HOST_URL \
+                      -Dsonar.login=$SONARQUBE_TOKEN
                     '''
                 }
             }
@@ -57,23 +55,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t fastapi-app:latest .'
-                }
+                sh 'docker build -t fastapi-app:latest .'
             }
         }
 
         stage('Deploy Container') {
             steps {
-                script {
-                    sh 'docker run -d -p 8000:8000 fastapi-app:latest'
-                }
+                sh 'docker run -d -p 8000:8000 fastapi-app:latest'
             }
         }
     }
+
     post {
         always {
-            echo "Pipeline finished"
+            echo 'Pipeline finished'
         }
     }
 }
