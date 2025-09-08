@@ -32,7 +32,7 @@ pipeline {
         stage('Run Tests & Generate Coverage') {
             agent {
                 docker {
-                    image 'python:3.11'
+                    image 'python-docker:3.11'
                 }
             }
             steps {
