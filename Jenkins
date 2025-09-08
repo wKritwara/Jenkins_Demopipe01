@@ -50,12 +50,8 @@ pipeline {
                       -e SONAR_HOST_URL=http://172.17.0.3:9000 \
                       -e SONAR_LOGIN=sqp_eb7b5bb7e277b631cb405148bd3a50bf6c239a6c \
                       -v $(pwd):/usr/src \
-                      sonarsource/sonar-scanner-cli 
-                      -Dsonar.projectKey=demoapi \
-                      -Dsonar.projectName="demoapi" \
-                      -Dsonar.sources=. \
-                      -Dsonar.host.url=http://172.17.0.3:9000 \
-                      -Dsonar.login=$SONAR_LOGIN
+                      sonarsource/sonar-scanner-cli  \
+                      -Dsonar.projectKey=demoapi 
                 '''
             }
         }
