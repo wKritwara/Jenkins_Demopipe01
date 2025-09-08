@@ -1,12 +1,12 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.11'  // Docker image ที่ต้องการใช้
-            args '-v /var/run/docker.sock:/var/run/docker.sock'  // optional ถ้าต้องใช้ Docker CLI
+            image 'python:3.11'  // Docker image
+            args '-v /var/run/docker.sock:/var/run/docker.sock'  // optional if Docker CLI is needed
         }
     }
     environment {
-        SONARQUBE = credentials('sonarqube-token')
+        SONARQUBE = credentials('sonarqube-token')  // store your SonarQube token in Jenkins
     }
     stages {
         stage('Checkout') {
@@ -18,12 +18,12 @@ pipeline {
         stage('Setup venv') {
             steps {
                 script {
-                    // Setup virtual environment, install dependencies in one go
                     sh '''
                     python3 -m venv venv
-                    . venv/bin/activate  # Activate virtual environment
+                    . venv/bin/activate
                     pip install --upgrade pip
                     pip install -r requirements.txt
+                    pip install pysonar   # Install pysonar here
                     '''
                 }
             }
@@ -32,9 +32,8 @@ pipeline {
         stage('Run Tests & Coverage') {
             steps {
                 script {
-                    // Run tests with coverage in the virtual environment
                     sh '''
-                    . venv/bin/activate  # Ensure venv is activated
+                    . venv/bin/activate
                     venv/bin/pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=xml
                     '''
                 }
@@ -43,8 +42,15 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonarqube') {
-                    sh 'sonar-scanner'
+                script {
+                    sh '''
+                    . venv/bin/activate
+                    pysonar \
+                      --sonar-host-url=http://localhost:9000 \
+                      --sonar-token=${SONARQUBE} \
+                      --sonar-project-key=demoapi \
+                      --sources .
+                    '''
                 }
             }
         }
@@ -52,7 +58,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image from the Dockerfile
                     sh 'docker build -t fastapi-app:latest .'
                 }
             }
@@ -61,7 +66,6 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    // Run Docker container in detached mode on port 8000
                     sh 'docker run -d -p 8000:8000 fastapi-app:latest'
                 }
             }
