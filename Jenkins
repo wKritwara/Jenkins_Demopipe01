@@ -6,7 +6,7 @@ pipeline {
         }
     }
     environment {
-        SONARQUBE_TOKEN = credentials('sonarqube-token') // Jenkins credential
+        SONARQUBE_TOKEN = credentials('sonar-token') // Jenkins credential
         SONARQUBE_SERVER = 'Sonarqube'                  // Name configured in Jenkins SonarQube plugin
     }
     stages {
