@@ -51,8 +51,8 @@ pipeline {
                       -e SONAR_LOGIN=sqp_eb7b5bb7e277b631cb405148bd3a50bf6c239a6c \
                       -v $(pwd):/usr/src \
                       sonarsource/sonar-scanner-cli \
-                      -Dsonar.projectKey=MyApp \
-                      -Dsonar.projectName="MyApp" \
+                      -Dsonar.projectKey=demoapi \
+                      -Dsonar.projectName="demoapi" \
                       -Dsonar.sources=.
                 '''
             }
